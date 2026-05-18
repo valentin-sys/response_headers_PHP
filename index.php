@@ -189,5 +189,8 @@ function probe_url($url, $timeoutSec = 10, $followRedirects = true) {
             'raw' => $t,
             'breakdown' => $breakdown,
         ],
-        'tls' => [
-            'ssl_verify_result' => $info['ssl_verify_result'] ?? null,
+      'tls' => [
+    'ssl_verify_result' => $info['ssl_verify_result'] ?? null,
+    // other tls fields here...
+],  // <-- closes 'tls' array
+];     // <-- closes the main return array
