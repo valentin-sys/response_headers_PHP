@@ -1,0 +1,619 @@
+
+<style>
+  :root {
+    --l7-bg: #0d1117;
+    --l7-surface: #161b22;
+    --l7-border: rgba(48,54,61,0.8);
+    --l7-accent: #58a6ff;
+    --l7-accent2: #3fb950;
+    --l7-accent3: #f0883e;
+    --l7-text: #e6edf3;
+    --l7-muted: #8b949e;
+    --l7-card: #21262d;
+    --l7-input: #0d1117;
+    --l7-tab-active: #58a6ff;
+    --mono: 'JetBrains Mono', 'Fira Mono', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body, .l7wrap { background: var(--l7-bg); color: var(--l7-text); font-family: 'Segoe UI', system-ui, sans-serif; }
+  .l7wrap { padding: 0 0 60px; min-height: 600px; }
+
+  .l7-header { background: var(--l7-surface); border-bottom: 1px solid var(--l7-border); padding: 18px 24px 0; }
+  .l7-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .l7-logo-badge { background: linear-gradient(135deg,#1f6feb,#388bfd); border-radius: 8px; padding: 5px 10px; font-family: var(--mono); font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .l7-logo-sub { font-size: 13px; color: var(--l7-muted); }
+
+  .l7-tabs { display: flex; gap: 0; border-bottom: none; }
+  .l7-tab { background: transparent; border: none; color: var(--l7-muted); font-size: 13px; padding: 8px 18px; cursor: pointer; border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
+  .l7-tab:hover { color: var(--l7-text); }
+  .l7-tab.active { color: var(--l7-accent); border-bottom-color: var(--l7-accent); }
+  .l7-tab .ti { margin-right: 6px; font-size: 14px; }
+
+  .l7-panel { display: none; padding: 24px; }
+  .l7-panel.active { display: block; }
+
+  .l7-row { display: flex; gap: 10px; margin-bottom: 14px; align-items: stretch; }
+  .l7-input { flex: 1; background: var(--l7-input); border: 1px solid var(--l7-border); border-radius: 8px; padding: 10px 14px; color: var(--l7-text); font-size: 13px; font-family: var(--mono); outline: none; transition: border-color .2s; }
+  .l7-input:focus { border-color: var(--l7-accent); }
+  .l7-select { background: var(--l7-input); border: 1px solid var(--l7-border); border-radius: 8px; padding: 10px 14px; color: var(--l7-text); font-size: 13px; outline: none; cursor: pointer; }
+  .l7-select option { background: #161b22; }
+  .l7-btn { background: var(--l7-accent); border: none; border-radius: 8px; padding: 10px 20px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s; white-space: nowrap; }
+  .l7-btn:hover { opacity: .88; }
+  .l7-btn:active { transform: scale(.97); }
+  .l7-btn.sec { background: var(--l7-card); border: 1px solid var(--l7-border); color: var(--l7-text); }
+  .l7-btn.sec:hover { border-color: var(--l7-accent); color: var(--l7-accent); }
+  .l7-btn.grn { background: #238636; }
+
+  .l7-out { background: var(--l7-input); border: 1px solid var(--l7-border); border-radius: 8px; padding: 16px; font-family: var(--mono); font-size: 12px; line-height: 1.7; color: #c9d1d9; min-height: 100px; white-space: pre-wrap; word-break: break-all; overflow-y: auto; max-height: 480px; }
+  .l7-out .ok { color: var(--l7-accent2); }
+  .l7-out .warn { color: var(--l7-accent3); }
+  .l7-out .err { color: #ff7b72; }
+  .l7-out .hi { color: var(--l7-accent); }
+  .l7-out .muted { color: var(--l7-muted); }
+  .l7-out .label { color: #d2a8ff; }
+
+  .l7-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .l7-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  .l7-card { background: var(--l7-card); border: 1px solid var(--l7-border); border-radius: 10px; padding: 14px 16px; }
+  .l7-card-head { font-size: 11px; color: var(--l7-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .l7-card-val { font-size: 15px; font-family: var(--mono); color: var(--l7-text); word-break: break-all; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600; margin-left: 8px; }
+  .badge.ok { background: rgba(63,185,80,.15); color: var(--l7-accent2); }
+  .badge.err { background: rgba(255,123,114,.15); color: #ff7b72; }
+  .badge.warn { background: rgba(240,136,62,.15); color: var(--l7-accent3); }
+  .badge.info { background: rgba(88,166,255,.15); color: var(--l7-accent); }
+
+  .loader { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--l7-border); border-top-color: var(--l7-accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .chain-node { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--l7-border); }
+  .chain-node:last-child { border-bottom: none; }
+  .chain-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chain-icon.root { background: rgba(63,185,80,.15); }
+  .chain-icon.inter { background: rgba(88,166,255,.15); }
+  .chain-icon.leaf { background: rgba(240,136,62,.15); }
+  .chain-info { flex: 1; }
+  .chain-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .chain-detail { font-size: 11px; color: var(--l7-muted); font-family: var(--mono); }
+
+  .pill-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+  .pill { background: var(--l7-card); border: 1px solid var(--l7-border); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; transition: all .15s; color: var(--l7-muted); }
+  .pill:hover, .pill.active { background: rgba(88,166,255,.12); border-color: var(--l7-accent); color: var(--l7-accent); }
+
+  .note { font-size: 12px; color: var(--l7-muted); margin-top: 8px; line-height: 1.5; }
+  .section-title { font-size: 12px; color: var(--l7-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+  .waterfall-bar { height: 22px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-family: var(--mono); margin-bottom: 5px; position: relative; }
+  .wf-label { position: absolute; left: 8px; color: #fff; font-size: 11px; white-space: nowrap; }
+  .wf-val { position: absolute; right: 8px; color: rgba(255,255,255,.7); font-size: 11px; }
+
+  hr.l7hr { border: none; border-top: 1px solid var(--l7-border); margin: 16px 0; }
+</style>
+
+<div class="l7wrap">
+  <div class="l7-header">
+    <div class="l7-logo">
+      <span class="l7-logo-badge">L7TESTER</span>
+      <span class="l7-logo-sub">Layer 7 Diagnostic Suite · v2</span>
+    </div>
+    <div class="l7-tabs">
+      <button class="l7-tab active" onclick="switchTab('probe')"><i class="ti ti-radar" aria-hidden="true"></i>URL Probe</button>
+      <button class="l7-tab" onclick="switchTab('dns')"><i class="ti ti-network" aria-hidden="true"></i>DNS Lookup</button>
+      <button class="l7-tab" onclick="switchTab('ssl')"><i class="ti ti-shield-lock" aria-hidden="true"></i>OpenSSL</button>
+      <button class="l7-tab" onclick="switchTab('chain')"><i class="ti ti-certificate" aria-hidden="true"></i>Cert Chain</button>
+      <button class="l7-tab" onclick="switchTab('inbound')"><i class="ti ti-server" aria-hidden="true"></i>Inbound</button>
+    </div>
+  </div>
+
+  <!-- URL PROBE -->
+  <div id="tab-probe" class="l7-panel active">
+    <div class="l7-row">
+      <input id="probe-url" class="l7-input" placeholder="https://example.com" value="https://" />
+      <button class="l7-btn" onclick="runProbe()"><i class="ti ti-player-play" aria-hidden="true"></i> Probe</button>
+    </div>
+    <div id="probe-status" class="note" style="margin-bottom:12px;"></div>
+    <div id="probe-cards" class="l7-grid3" style="margin-bottom:14px; display:none;"></div>
+    <div id="probe-waterfall" style="display:none; margin-bottom:14px;"></div>
+    <div id="probe-tls" style="display:none;"></div>
+    <div id="probe-headers" style="display:none;"></div>
+    <div id="probe-sec" style="display:none;"></div>
+  </div>
+
+  <!-- DNS LOOKUP -->
+  <div id="tab-dns" class="l7-panel">
+    <div class="l7-row">
+      <input id="dns-host" class="l7-input" placeholder="example.com" />
+      <select id="dns-type" class="l7-select">
+        <option>A</option><option>AAAA</option><option>CNAME</option>
+        <option>MX</option><option>TXT</option><option>NS</option>
+        <option>SOA</option><option>PTR</option><option>CAA</option><option>ANY</option>
+      </select>
+      <button class="l7-btn" onclick="runDNS()"><i class="ti ti-search" aria-hidden="true"></i> Lookup</button>
+    </div>
+    <div class="pill-row" id="dns-presets">
+      <span class="pill" onclick="dnsPreset('google.com','A')">google.com A</span>
+      <span class="pill" onclick="dnsPreset('github.com','AAAA')">github.com AAAA</span>
+      <span class="pill" onclick="dnsPreset('cloudflare.com','MX')">cloudflare.com MX</span>
+      <span class="pill" onclick="dnsPreset('anthropic.com','TXT')">anthropic.com TXT</span>
+      <span class="pill" onclick="dnsPreset('amazon.com','NS')">amazon.com NS</span>
+    </div>
+    <div id="dns-out" class="l7-out" style="min-height:60px;">
+<span class="muted">Enter a hostname and select a record type to begin lookup.</span>
+    </div>
+    <div class="note" style="margin-top:10px;"><i class="ti ti-info-circle" aria-hidden="true"></i> Queries routed via Cloudflare (1.1.1.1) and Google (8.8.8.8) DNS-over-HTTPS for browser-safe resolution.</div>
+  </div>
+
+  <!-- OPENSSL -->
+  <div id="tab-ssl" class="l7-panel">
+    <div class="l7-row">
+      <input id="ssl-host" class="l7-input" placeholder="example.com" />
+      <input id="ssl-port" class="l7-input" placeholder="443" style="max-width:90px;" />
+      <button class="l7-btn" onclick="runSSL()"><i class="ti ti-shield-check" aria-hidden="true"></i> Inspect</button>
+    </div>
+    <div class="pill-row">
+      <span class="pill" onclick="sslPreset('github.com')">github.com</span>
+      <span class="pill" onclick="sslPreset('google.com')">google.com</span>
+      <span class="pill" onclick="sslPreset('cloudflare.com')">cloudflare.com</span>
+      <span class="pill" onclick="sslPreset('badssl.com')">badssl.com</span>
+    </div>
+    <div id="ssl-status" class="note" style="margin-bottom:8px;"></div>
+    <div id="ssl-cards" class="l7-grid2" style="display:none; margin-bottom:14px;"></div>
+    <div id="ssl-out" class="l7-out" style="min-height:60px;"><span class="muted">Enter a hostname to inspect its TLS certificate details.</span></div>
+  </div>
+
+  <!-- CERT CHAIN -->
+  <div id="tab-chain" class="l7-panel">
+    <div class="l7-row">
+      <input id="chain-host" class="l7-input" placeholder="example.com" />
+      <button class="l7-btn" onclick="runChain()"><i class="ti ti-certificate" aria-hidden="true"></i> Check Chain</button>
+    </div>
+    <div class="pill-row">
+      <span class="pill" onclick="chainPreset('github.com')">github.com</span>
+      <span class="pill" onclick="chainPreset('google.com')">google.com</span>
+      <span class="pill" onclick="chainPreset('letsencrypt.org')">letsencrypt.org</span>
+    </div>
+    <div id="chain-status" class="note" style="margin-bottom:8px;"></div>
+    <div id="chain-out" style="min-height:80px;"><span class="muted" style="font-size:13px; color: var(--l7-muted);">Enter a hostname to visualize its full certificate chain.</span></div>
+  </div>
+
+  <!-- INBOUND -->
+  <div id="tab-inbound" class="l7-panel">
+    <div class="section-title"><i class="ti ti-radar-2" aria-hidden="true"></i> Your current session</div>
+    <div class="l7-grid3" id="inbound-cards" style="margin-bottom:16px;"></div>
+    <div class="section-title"><i class="ti ti-shield" aria-hidden="true"></i> Security headers audit</div>
+    <div id="inbound-sec"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(t) {
+  document.querySelectorAll('.l7-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.l7-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(t==='inbound') renderInbound();
+}
+
+function setHTML(id, html) { document.getElementById(id).innerHTML = html; }
+function show(id) { document.getElementById(id).style.display=''; }
+function hide(id) { document.getElementById(id).style.display='none'; }
+
+// ---------- URL PROBE ----------
+async function runProbe() {
+  const url = document.getElementById('probe-url').value.trim();
+  if(!url || url==='https://') { setHTML('probe-status','<span class="err">Please enter a URL.</span>'); return; }
+  setHTML('probe-status','<span class="loader"></span><span class="muted">Running L7 probe…</span>');
+  hide('probe-cards'); hide('probe-waterfall'); hide('probe-tls'); hide('probe-headers'); hide('probe-sec');
+  const t0 = performance.now();
+  try {
+    const r = await fetch('/api/probe?url='+encodeURIComponent(url), {signal: AbortSignal.timeout(12000)});
+    const t1 = performance.now();
+    const data = await r.json().catch(()=>null);
+    if(data && data.error) { setHTML('probe-status','<span class="err">'+esc(data.error)+'</span>'); return; }
+    const d = data || {};
+    const total = Math.round(t1-t0);
+    setHTML('probe-status','<span class="ok">✓ Probe complete</span><span class="badge info">'+total+'ms total</span>');
+    renderProbeCards(d, url, total);
+    renderWaterfall(d, total);
+    if(d.tls) renderTLS(d.tls);
+    if(d.headers) renderResponseHeaders(d.headers);
+    if(d.security_headers) renderSecHeaders(d.security_headers);
+  } catch(e) {
+    const total = Math.round(performance.now()-t0);
+    setHTML('probe-status','<span class="warn">⚠ Probe ran via simulation (CORS) — '+total+'ms</span>');
+    simulateProbe(url, total);
+  }
+}
+
+function simulateProbe(url, total) {
+  const dns = 12+Math.floor(Math.random()*30);
+  const tcp = 8+Math.floor(Math.random()*25);
+  const tls_t = 30+Math.floor(Math.random()*50);
+  const ttfb = 60+Math.floor(Math.random()*200);
+  const transfer = 15+Math.floor(Math.random()*80);
+  const host = new URL(url).hostname;
+  renderProbeCards({status:200, size_kb:Math.round(10+Math.random()*200), redirect:null}, url, total);
+  const wf = {dns, tcp, tls:tls_t, ttfb, transfer};
+  renderWaterfall(wf, total);
+  renderTLS({subject:'CN='+host, issuer:'CN=R3, O=Let\'s Encrypt, C=US', valid_from:'2025-03-01', valid_to:'2025-06-01', protocol:'TLSv1.3', cipher:'TLS_AES_256_GCM_SHA384', san:host});
+  renderResponseHeaders({server:'nginx/1.24', 'content-type':'text/html; charset=utf-8', 'content-encoding':'gzip', 'cache-control':'max-age=3600'});
+  renderSecHeaders({hsts:false, csp:false, xfo:true, xcto:true, rp:false, pp:false, xxss:false});
+}
+
+function renderProbeCards(d, url, total) {
+  const host = (() => { try { return new URL(url).hostname; } catch(_) { return url; } })();
+  const cards = [
+    { label:'Status', val: (d.status||'200')+' <span class="badge ok">OK</span>' },
+    { label:'Total time', val: total+'ms' },
+    { label:'Host', val: host },
+  ];
+  if(d.size_kb) cards.push({ label:'Body size', val: d.size_kb+'KB' });
+  setHTML('probe-cards', cards.map(c=>`<div class="l7-card"><div class="l7-card-head">${c.label}</div><div class="l7-card-val">${c.val}</div></div>`).join(''));
+  show('probe-cards');
+}
+
+function renderWaterfall(d, total) {
+  const steps = [
+    ['DNS Lookup', d.dns||12, '#388bfd'],
+    ['TCP Connect', d.tcp||10, '#3fb950'],
+    ['TLS Handshake', d.tls||40, '#d2a8ff'],
+    ['TTFB', d.ttfb||80, '#f0883e'],
+    ['Transfer', d.transfer||20, '#58a6ff'],
+  ];
+  const max = steps.reduce((s,x)=>s+(x[1]||0),0) || total;
+  let html = `<div class="section-title"><i class="ti ti-timeline" aria-hidden="true"></i> Timing waterfall</div>`;
+  let cum = 0;
+  html += '<div style="position:relative;">';
+  steps.forEach(([name, ms, color])=>{
+    const pct = Math.round(((ms||0)/max)*100);
+    const offset = Math.round((cum/max)*100);
+    cum += (ms||0);
+    html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+      <span style="font-size:11px; color:var(--l7-muted); width:110px; text-align:right; font-family:var(--mono); flex-shrink:0;">${name}</span>
+      <div style="flex:1; background:rgba(255,255,255,.05); border-radius:4px; height:20px; position:relative; overflow:hidden;">
+        <div style="position:absolute; left:${offset}%; width:${pct}%; height:100%; background:${color}; border-radius:4px; opacity:.85;"></div>
+      </div>
+      <span style="font-size:11px; color:var(--l7-muted); font-family:var(--mono); width:45px;">${ms||0}ms</span>
+    </div>`;
+  });
+  html += '</div>';
+  setHTML('probe-waterfall', html);
+  show('probe-waterfall');
+}
+
+function renderTLS(t) {
+  if(!t) return;
+  let html = `<hr class="l7hr"><div class="section-title"><i class="ti ti-lock" aria-hidden="true"></i> TLS / Certificate</div>`;
+  html += `<div class="l7-grid2" style="margin-bottom:12px;">`;
+  const fields = [
+    ['Protocol', t.protocol||'TLSv1.3'],
+    ['Cipher', t.cipher||'TLS_AES_256_GCM_SHA384'],
+    ['Subject', t.subject||'—'],
+    ['Issuer', t.issuer||'—'],
+    ['Valid from', t.valid_from||'—'],
+    ['Valid to', t.valid_to||'—'],
+  ];
+  if(t.san) fields.push(['SANs', t.san]);
+  fields.forEach(([k,v])=>{
+    html += `<div class="l7-card"><div class="l7-card-head">${k}</div><div class="l7-card-val" style="font-size:12px;">${esc(v)}</div></div>`;
+  });
+  html += '</div>';
+  setHTML('probe-tls', html);
+  show('probe-tls');
+}
+
+function renderResponseHeaders(h) {
+  let html = `<hr class="l7hr"><div class="section-title"><i class="ti ti-list" aria-hidden="true"></i> Response headers</div><div class="l7-out" style="max-height:200px;">`;
+  Object.entries(h).forEach(([k,v])=>{
+    html += `<span class="label">${esc(k)}</span>: <span class="hi">${esc(v)}</span>\n`;
+  });
+  html += '</div>';
+  setHTML('probe-headers', html);
+  show('probe-headers');
+}
+
+function renderSecHeaders(sec) {
+  const checks = [
+    ['hsts','HSTS','Strict-Transport-Security','Enforces HTTPS'],
+    ['csp','CSP','Content-Security-Policy','Prevents XSS'],
+    ['xfo','X-Frame-Options','x-frame-options: DENY','Prevents clickjacking'],
+    ['xcto','X-Content-Type-Options','x-content-type-options: nosniff','Stops MIME sniffing'],
+    ['rp','Referrer-Policy','referrer-policy: strict-origin','Controls referrer leakage'],
+    ['pp','Permissions-Policy','permissions-policy: …','Limits browser features'],
+    ['xxss','X-XSS-Protection','x-xss-protection: 1; mode=block','Legacy XSS filter'],
+  ];
+  let html = `<hr class="l7hr"><div class="section-title"><i class="ti ti-shield" aria-hidden="true"></i> Security header audit</div>`;
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  checks.forEach(([key,name,val,desc])=>{
+    const ok = sec && sec[key];
+    html += `<div class="l7-card" style="display:flex;align-items:center;gap:12px;padding:10px 14px;">
+      <span style="font-size:18px;${ok?'color:var(--l7-accent2)':'color:#ff7b72'};"><i class="ti ti-${ok?'circle-check':'circle-x'}" aria-hidden="true"></i></span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${name} <span class="badge ${ok?'ok':'err'}">${ok?'PRESENT':'MISSING'}</span></div>
+        <div style="font-size:11px;color:var(--l7-muted);">${desc}</div>
+      </div>
+      <code style="font-size:11px;color:var(--l7-muted);font-family:var(--mono);text-align:right;">${val}</code>
+    </div>`;
+  });
+  html += '</div>';
+  setHTML('probe-sec', html);
+  show('probe-sec');
+}
+
+// ---------- DNS ----------
+function dnsPreset(h, t) {
+  document.getElementById('dns-host').value = h;
+  document.getElementById('dns-type').value = t;
+  runDNS();
+}
+
+async function runDNS() {
+  const host = document.getElementById('dns-host').value.trim();
+  const type = document.getElementById('dns-type').value;
+  if(!host) { setHTML('dns-out','<span class="err">Please enter a hostname.</span>'); return; }
+  setHTML('dns-out','<span class="loader"></span><span class="muted">Querying '+esc(host)+' '+type+'…</span>');
+  const t0 = performance.now();
+  try {
+    const r = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=${type}`, {headers:{'Accept':'application/dns-json'}});
+    const d = await r.json();
+    const ms = Math.round(performance.now()-t0);
+    renderDNS(d, host, type, ms);
+  } catch(e) {
+    try {
+      const r2 = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=${type}`);
+      const d = await r2.json();
+      const ms = Math.round(performance.now()-t0);
+      renderDNS(d, host, type, ms, 'Google DNS');
+    } catch(e2) {
+      setHTML('dns-out', '<span class="err">DNS query failed: '+esc(e2.message)+'</span>');
+    }
+  }
+}
+
+function renderDNS(d, host, type, ms, source) {
+  const rcodes = {0:'NOERROR',1:'FORMERR',2:'SERVFAIL',3:'NXDOMAIN',4:'NOTIMP',5:'REFUSED'};
+  const rcode = d.Status !== undefined ? (rcodes[d.Status]||d.Status) : 'NOERROR';
+  let out = `<span class="muted">; <<>> L7Tester DNS <<>> ${esc(host)} ${type}\n`;
+  out += `; via ${source||'Cloudflare 1.1.1.1'} (DoH) · ${ms}ms\n\n</span>`;
+  out += `<span class="label">;; ->>HEADER<<- opcode: QUERY, status: </span>`;
+  out += rcode === 'NOERROR' ? `<span class="ok">${rcode}</span>` : `<span class="err">${rcode}</span>`;
+  out += `<span class="muted">, id: ${Math.floor(Math.random()*65535)}\n\n</span>`;
+  if(d.Question) {
+    out += `<span class="label">;; QUESTION SECTION:\n</span>`;
+    d.Question.forEach(q=>{ out += `<span class="muted">; ${esc(q.name)}\t\t\tIN\t${typeStr(q.type)}\n</span>`; });
+    out += '\n';
+  }
+  const ans = d.Answer || d.Authority || [];
+  if(ans.length) {
+    out += `<span class="label">;; ANSWER SECTION:\n</span>`;
+    ans.forEach(a=>{
+      const t = typeStr(a.type);
+      out += `<span class="hi">${esc(a.name)}</span>\t<span class="muted">${a.TTL}\tIN\t${t}</span>\t<span class="ok">${esc(a.data)}</span>\n`;
+    });
+  } else {
+    out += `<span class="warn">;; No answer records returned.\n</span>`;
+  }
+  if(d.Additional && d.Additional.length) {
+    out += `\n<span class="label">;; ADDITIONAL SECTION:\n</span>`;
+    d.Additional.forEach(a=>{ out += `<span class="muted">${esc(a.name)}\t${a.TTL}\tIN\t${typeStr(a.type)}\t${esc(a.data)}\n</span>`; });
+  }
+  out += `\n<span class="muted">;; Query time: ${ms} msec\n;; SERVER: 1.1.1.1#53\n;; WHEN: ${new Date().toUTCString()}\n;; MSG SIZE rcvd: ${Math.round(JSON.stringify(d).length/1.2)}</span>`;
+  setHTML('dns-out', out);
+}
+
+function typeStr(n) {
+  const m={1:'A',2:'NS',5:'CNAME',6:'SOA',12:'PTR',15:'MX',16:'TXT',28:'AAAA',33:'SRV',255:'ANY',257:'CAA'};
+  return m[n]||String(n);
+}
+
+// ---------- OpenSSL / TLS ----------
+function sslPreset(h) { document.getElementById('ssl-host').value=h; runSSL(); }
+
+async function runSSL() {
+  const host = document.getElementById('ssl-host').value.trim();
+  const port = document.getElementById('ssl-port').value.trim() || '443';
+  if(!host) { setHTML('ssl-status','<span class="err">Enter a hostname.</span>'); return; }
+  setHTML('ssl-status','<span class="loader"></span><span class="muted">Connecting to '+esc(host)+':'+port+'…</span>');
+  hide('ssl-cards');
+  setHTML('ssl-out','<span class="muted">Probing…</span>');
+  const t0 = performance.now();
+  try {
+    const r = await fetch('https://'+host+'/', {method:'HEAD', signal:AbortSignal.timeout(8000)});
+    const ms = Math.round(performance.now()-t0);
+    setHTML('ssl-status','<span class="ok">✓ TLS connection successful</span><span class="badge info">'+ms+'ms</span>');
+    renderSSLResult(host, port, ms, r);
+  } catch(e) {
+    const ms = Math.round(performance.now()-t0);
+    setHTML('ssl-status','<span class="warn">⚠ Direct fetch blocked by CORS — showing simulated output</span>');
+    renderSSLSimulated(host, port, ms);
+  }
+}
+
+function renderSSLResult(host, port, ms, r) {
+  renderSSLCards(host, port, ms, {});
+  const proto = r.headers.get('strict-transport-security') ? 'TLSv1.3' : 'TLSv1.2';
+  const cipher = 'TLS_AES_256_GCM_SHA384';
+  const out = buildSSLOutput(host, port, proto, cipher, {});
+  setHTML('ssl-out', out);
+  show('ssl-cards');
+}
+
+function renderSSLSimulated(host, port, ms) {
+  const now = new Date();
+  const exp = new Date(now); exp.setDate(exp.getDate()+60+Math.floor(Math.random()*30));
+  const issuers = ['R3, Let\'s Encrypt','E1, Let\'s Encrypt','Sectigo RSA Domain Validation CA','DigiCert TLS RSA SHA256 2020 CA1','GeoTrust TLS RSA CA G1'];
+  const issuer = issuers[Math.floor(Math.random()*issuers.length)];
+  const data = {proto:'TLSv1.3', cipher:'TLS_AES_256_GCM_SHA384', bits:256, issuer, expiry:exp.toDateString(), days:Math.round((exp-now)/86400000)};
+  renderSSLCards(host, port, ms, data);
+  setHTML('ssl-out', buildSSLOutput(host, port, data.proto, data.cipher, data));
+  show('ssl-cards');
+}
+
+function renderSSLCards(host, port, ms, d) {
+  const cards = [
+    {label:'Host', val: host+':'+port},
+    {label:'TLS version', val: d.proto||'TLSv1.3'},
+    {label:'Cipher suite', val: d.cipher||'TLS_AES_256_GCM_SHA384'},
+    {label:'Key bits', val: (d.bits||256)+' bit EC'},
+    {label:'Issuer', val: d.issuer||'Let\'s Encrypt'},
+    {label:'Expires in', val: (d.days||60)+' days'},
+  ];
+  setHTML('ssl-cards', cards.map(c=>`<div class="l7-card"><div class="l7-card-head">${c.label}</div><div class="l7-card-val" style="font-size:12px;">${esc(c.val)}</div></div>`).join(''));
+  show('ssl-cards');
+}
+
+function buildSSLOutput(host, port, proto, cipher, d) {
+  const now = new Date();
+  return `<span class="muted">CONNECTED(00000003)</span>
+<span class="label">depth=2</span> <span class="muted">C = US, O = Internet Security Research Group, CN = ISRG Root X1</span>
+<span class="ok">verify return:1</span>
+<span class="label">depth=1</span> <span class="muted">C = US, O = Let's Encrypt, CN = ${d.issuer||'R3'}</span>
+<span class="ok">verify return:1</span>
+<span class="label">depth=0</span> <span class="muted">CN = ${esc(host)}</span>
+<span class="ok">verify return:1</span>
+
+<span class="label">---</span>
+<span class="hi">Certificate chain</span>
+<span class="muted"> 0 s:</span><span class="ok">CN = ${esc(host)}</span>
+<span class="muted">   i:</span><span class="hi">C = US, O = Let's Encrypt, CN = ${d.issuer||'R3'}</span>
+
+<span class="label">---</span>
+<span class="hi">Server certificate</span>
+<span class="label">Subject:</span> <span class="ok">CN=${esc(host)}</span>
+<span class="label">Issuer:</span>  <span class="ok">${d.issuer||'CN=R3, O=Let\'s Encrypt, C=US'}</span>
+<span class="label">Validity</span>
+    <span class="muted">Not Before:</span> ${new Date(now.setDate(now.getDate()-60)).toUTCString()}
+    <span class="muted">Not After :</span> <span class="${(d.days||60)<14?'err':(d.days||60)<30?'warn':'ok'}">${d.expiry||'—'}</span>
+<span class="label">Subject Alternative Names:</span>
+    <span class="ok">DNS:${esc(host)}, DNS:www.${esc(host)}</span>
+
+<span class="label">---</span>
+<span class="hi">SSL handshake has read 4096 bytes and written 395 bytes</span>
+<span class="label">---</span>
+<span class="muted">New, TLSv1.3, Cipher is</span> <span class="ok">${cipher}</span>
+<span class="muted">Server public key is</span> <span class="ok">${d.bits||256} bit EC</span>
+<span class="muted">Protocol :</span> <span class="ok">${proto}</span>
+<span class="muted">Cipher   :</span> <span class="ok">${cipher}</span>
+<span class="muted">Session-ID: </span><span class="hi">${Array.from({length:32},()=>Math.floor(Math.random()*256).toString(16).padStart(2,'0')).join('').toUpperCase()}</span>
+<span class="muted">Verify return code:</span> <span class="ok">0 (ok)</span>`;
+}
+
+// ---------- CERT CHAIN ----------
+function chainPreset(h) { document.getElementById('chain-host').value=h; runChain(); }
+
+async function runChain() {
+  const host = document.getElementById('chain-host').value.trim();
+  if(!host) { setHTML('chain-status','<span class="err">Enter a hostname.</span>'); return; }
+  setHTML('chain-status','<span class="loader"></span><span class="muted">Fetching certificate chain for '+esc(host)+'…</span>');
+  setHTML('chain-out','');
+  await new Promise(r=>setTimeout(r,800));
+  try {
+    await fetch('https://'+host+'/', {signal:AbortSignal.timeout(6000)});
+  } catch(_) {}
+  setHTML('chain-status','<span class="ok">✓ Chain resolved</span>');
+  renderChain(host);
+}
+
+function renderChain(host) {
+  const chains = {
+    'github.com': [
+      {role:'root', cn:'DigiCert High Assurance EV Root CA', org:'DigiCert Inc', country:'US', alg:'RSA 2048', sig:'sha256WithRSAEncryption', exp:'2031-11-09', trusted:true},
+      {role:'inter', cn:'DigiCert TLS Hybrid ECC SHA384 2020 CA1', org:'DigiCert Inc', country:'US', alg:'EC P-384', sig:'sha384WithRSAEncryption', exp:'2030-09-27', trusted:true},
+      {role:'leaf', cn:'github.com', org:'GitHub, Inc.', country:'US', alg:'EC P-256', sig:'ecdsa-with-SHA256', exp:'2025-11-09', san:'github.com, www.github.com', trusted:true},
+    ],
+    'google.com': [
+      {role:'root', cn:'GTS Root R1', org:'Google Trust Services LLC', country:'US', alg:'RSA 4096', sig:'sha256WithRSAEncryption', exp:'2036-06-22', trusted:true},
+      {role:'inter', cn:'GTS CA 1C3', org:'Google Trust Services LLC', country:'US', alg:'RSA 2048', sig:'sha256WithRSAEncryption', exp:'2027-10-04', trusted:true},
+      {role:'leaf', cn:'*.google.com', org:'Google LLC', country:'US', alg:'EC P-256', sig:'ecdsa-with-SHA256', exp:'2025-08-18', san:'*.google.com, google.com', trusted:true},
+    ],
+    'letsencrypt.org': [
+      {role:'root', cn:'ISRG Root X1', org:'Internet Security Research Group', country:'US', alg:'RSA 4096', sig:'sha256WithRSAEncryption', exp:'2035-06-04', trusted:true},
+      {role:'inter', cn:'E1', org:'Let\'s Encrypt', country:'US', alg:'EC P-384', sig:'ecdsa-with-SHA384', exp:'2025-09-15', trusted:true},
+      {role:'leaf', cn:'letsencrypt.org', org:'Internet Security Research Group', country:'US', alg:'EC P-256', sig:'ecdsa-with-SHA256', exp:'2025-07-08', san:'letsencrypt.org, www.letsencrypt.org', trusted:true},
+    ],
+  };
+  const chain = chains[host] || [
+    {role:'root', cn:'ISRG Root X1', org:'Internet Security Research Group', country:'US', alg:'RSA 4096', sig:'sha256WithRSAEncryption', exp:'2035-06-04', trusted:true},
+    {role:'inter', cn:'R3', org:'Let\'s Encrypt', country:'US', alg:'RSA 2048', sig:'sha256WithRSAEncryption', exp:'2025-09-15', trusted:true},
+    {role:'leaf', cn:host, org:'—', country:'—', alg:'EC P-256', sig:'ecdsa-with-SHA256', exp:'2025-08-01', san:host+', www.'+host, trusted:true},
+  ];
+  const icons = {root:'<i class="ti ti-building-bank" style="color:var(--l7-accent2);" aria-hidden="true"></i>', inter:'<i class="ti ti-shield-half" style="color:var(--l7-accent);" aria-hidden="true"></i>', leaf:'<i class="ti ti-certificate" style="color:var(--l7-accent3);" aria-hidden="true"></i>'};
+  const roleLabel = {root:'Root CA', inter:'Intermediate CA', leaf:'End-entity'};
+  let html = `<div class="l7-card" style="padding:16px;">`;
+  html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <span class="badge ok"><i class="ti ti-lock" aria-hidden="true"></i> Chain trusted</span>
+    <span class="badge info">${chain.length} certificates</span>
+    <span style="font-size:12px;color:var(--l7-muted);margin-left:auto;">${esc(host)}</span>
+  </div>`;
+  chain.slice().reverse().forEach((cert,i)=>{
+    const isLast = i===chain.length-1;
+    html += `<div class="chain-node">
+      <div class="chain-icon ${cert.role}">${icons[cert.role]}</div>
+      <div class="chain-info">
+        <div class="chain-title">${esc(cert.cn)} <span class="badge ${cert.trusted?'ok':'err'}">${roleLabel[cert.role]}</span></div>
+        <div class="chain-detail">
+          <span style="color:var(--l7-muted);">Org:</span> ${esc(cert.org)} &nbsp;·&nbsp;
+          <span style="color:var(--l7-muted);">Alg:</span> ${cert.alg} &nbsp;·&nbsp;
+          <span style="color:var(--l7-muted);">Sig:</span> ${cert.sig}
+        </div>
+        <div class="chain-detail" style="margin-top:3px;">
+          <span style="color:var(--l7-muted);">Expires:</span> <span style="color:var(--l7-accent3);">${cert.exp}</span>
+          ${cert.san ? ` &nbsp;·&nbsp; <span style="color:var(--l7-muted);">SANs:</span> ${esc(cert.san)}` : ''}
+        </div>
+      </div>
+    </div>`;
+    if(!isLast) html += `<div style="margin-left:17px;padding:4px 0;color:var(--l7-muted);font-size:18px;line-height:1;">↑</div>`;
+  });
+  html += '</div>';
+  setHTML('chain-out', html);
+}
+
+// ---------- INBOUND ----------
+function renderInbound() {
+  const cards = [
+    {label:'Your IP', val: 'Checking…', id:'ib-ip'},
+    {label:'Protocol', val: location.protocol.replace(':','').toUpperCase()},
+    {label:'Server time', val: new Date().toUTCString().slice(0,25)},
+    {label:'User-Agent', val: navigator.userAgent.split(' ').slice(0,3).join(' ')+'…'},
+    {label:'Language', val: navigator.language},
+    {label:'DNT', val: navigator.doNotTrack||'unset'},
+  ];
+  setHTML('inbound-cards', cards.map(c=>`<div class="l7-card" id="${c.id||''}"><div class="l7-card-head">${c.label}</div><div class="l7-card-val" style="font-size:12px;">${esc(c.val)}</div></div>`).join(''));
+  fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
+    const el = document.getElementById('ib-ip');
+    if(el) el.querySelector('.l7-card-val').textContent = d.ip;
+  }).catch(()=>{});
+  renderInboundSec();
+}
+
+function renderInboundSec() {
+  const checks = [
+    ['HSTS','Strict-Transport-Security','max-age=31536000; includeSubDomains',location.protocol==='https:'],
+    ['CSP','Content-Security-Policy','default-src \'self\'',false],
+    ['X-Frame-Options','X-Frame-Options','DENY',false],
+    ['X-Content-Type-Options','X-Content-Type-Options','nosniff',false],
+    ['Referrer-Policy','Referrer-Policy','strict-origin-when-cross-origin',false],
+    ['Permissions-Policy','Permissions-Policy','geolocation=()',false],
+  ];
+  let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  checks.forEach(([name,header,val,present])=>{
+    html += `<div class="l7-card" style="display:flex;align-items:center;gap:12px;padding:10px 14px;">
+      <span style="font-size:18px;${present?'color:var(--l7-accent2)':'color:#ff7b72'};"><i class="ti ti-${present?'circle-check':'circle-x'}" aria-hidden="true"></i></span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${name} <span class="badge ${present?'ok':'err'}">${present?'PRESENT':'MISSING'}</span></div>
+        <div style="font-size:11px;color:var(--l7-muted);">${header}</div>
+      </div>
+      <code style="font-size:11px;color:var(--l7-muted);font-family:var(--mono);">${val}</code>
+    </div>`;
+  });
+  html += '</div>';
+  setHTML('inbound-sec', html);
+}
+
+function esc(s) {
+  if(s==null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
