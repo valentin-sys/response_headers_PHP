@@ -11,6 +11,7 @@ $latency = microtime(true) - $start_time;
 // Get HTTP status
 $http_status = http_response_code();
 
+<a href="/index.php">Try the new dark mode website →</a>
 echo '<h1>Response Headers</h1>';
 echo '<pre>';
 print_r(getallheaders());
